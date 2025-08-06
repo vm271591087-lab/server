@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <title>抽题系统</title>
+</head>
+<body>
+  <h1>抽题系统</h1>
+  <input type="text" id="username" placeholder="请输入你的姓名" />
+  <button onclick="drawQuestion()">开始抽题</button>
+  <div id="result" style="margin-top: 20px;"></div>
+
+  <script>
+    // 100道题目（你可以继续补充）
+    const questionPool = [
+      {
+        label: 'A',
+        content: '信用卡正常消费有20-50天的免息期。如果在免息期还够全额账单就没有利息。信用卡按央行《银行卡业务管理办法》收取利息，利息是每日0.05%，也就是年息18.25%。'
+      },
+      {
+        label: 'B',
+        content: '题目2的详细内容'
+      },
+      {
+        label: 'C',
+        content: '题目3的详细内容'
+      },
+      // 可补足至 100 道
+    ];
+
+    async function drawQuestion() {
+      const username = document.getElementById('username').value.trim();
+      const resultBox = document.getElementById('result');
+
+      if (!username) {
+        alert('请输入你的姓名！');
+        return;
+      }
+
+      const index = Math.floor(Math.random() * questionPool.length);
+      const question = questionPool[index];
+
+      resultBox.innerHTML = `<strong>${username}</strong> 抽到了题目 ${index + 1}（${question.label}）：<br>${question.content}`;
+
+      try {
+        const response = await fetch('http://localhost:3000/api/record', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            username: username,
+            questionIndex: index,
+            questionText: question.content,
+            timestamp: new Date().toISOString()
+          })
+        });
+
+        const result = await response.json();
+
+        if (response.status === 403) {
+          alert('⚠️ 抱歉，你已经达到最大抽题次数（5次）');
+        }
+      } catch (err) {
+        alert('🚫 无法连接服务器，请确认后端已启动');
+        console.error(err);
+      }
+    }
+  </script>
+</body>
+</html>
